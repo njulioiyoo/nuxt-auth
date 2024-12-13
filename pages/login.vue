@@ -64,13 +64,15 @@ const onSubmit = async () => {
         // Validasi menggunakan Zod
         loginSchema.parse(form); // Akan lempar error jika tidak valid
 
-        // Panggil API login
+        console.log('Sending data to API:', form); // Debug log
+
         const response = await $fetch<{ role: string }>('/api/auth/login', {
             method: 'POST',
             body: { ...form },
         }).catch((error) => {
             // Jika API gagal, tampilkan pesan error
-            throw new Error(error?.data?.error || 'Invalid username or password');
+            const errorMessage = error?.data?.error || 'Invalid username or password';
+            throw new Error(errorMessage);
         });
 
         if (!response.role) {
@@ -88,9 +90,8 @@ const onSubmit = async () => {
 
         // Redirect ke halaman home
         navigateTo('/home');
-    } catch (err) {
+    } catch (err: any) {
         if (err instanceof z.ZodError) {
-            // Tangani error validasi Zod
             err.errors.forEach((e) => {
                 if (e.path && e.path[0] in errors) {
                     errors[e.path[0] as keyof typeof errors] = e.message || '';
@@ -102,4 +103,5 @@ const onSubmit = async () => {
         }
     }
 };
+
 </script>
