@@ -1,10 +1,5 @@
-import { defineEventHandler, readBody } from "h3";
-
-// Daftar pengguna yang terdaftar di server
-const registeredUsers = [
-  { username: "admin", password: "admin", role: "admin" },
-  { username: "employee", password: "employee", role: "employee" },
-];
+import { defineEventHandler, readBody, createError } from "h3";
+import { registeredUsers, User } from "@/server/repositories/user";
 
 // Fungsi untuk login
 export default defineEventHandler(async (event) => {
@@ -13,7 +8,10 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event);
 
     // Validasi input secara manual
-    const { username, password } = body;
+    const { username, password } = body as {
+      username: string;
+      password: string;
+    };
 
     if (!username || username.length < 4) {
       throw createError({
@@ -30,7 +28,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Cek kredensial terhadap data pengguna terdaftar
-    const user = registeredUsers.find(
+    const user: User | undefined = registeredUsers.find(
       (u) => u.username === username && u.password === password
     );
 
@@ -43,7 +41,7 @@ export default defineEventHandler(async (event) => {
 
     // Jika validasi berhasil, kembalikan data pengguna
     return { message: "Login successful", role: user.role };
-  } catch (err) {
+  } catch (err: any) {
     return {
       statusCode: err.statusCode || 500,
       message: err.statusMessage || "An error occurred",
